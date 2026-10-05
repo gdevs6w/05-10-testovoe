@@ -2,7 +2,7 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import BigInteger, DateTime, Enum, String, Uuid, func
+from sqlalchemy import BigInteger, DateTime, Enum, Integer, String, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -17,7 +17,11 @@ class OutboxStatus(str, enum.Enum):
 class Outbox(Base):
     __tablename__ = "outbox"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(
+        BigInteger().with_variant(Integer, "sqlite"),
+        primary_key=True,
+        autoincrement=True,
+    )
     event_type: Mapped[str] = mapped_column(String(100), nullable=False)
     aggregate_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False, index=True)
     payload: Mapped[dict] = mapped_column(JSONType, nullable=False)

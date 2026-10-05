@@ -1,7 +1,9 @@
 /venv/
-/.idea
-.env
+/.idea/
 __pycache__/
 *.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
 .ruff_cache/
-.pytest_cache/.
+.env

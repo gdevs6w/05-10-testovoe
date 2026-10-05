@@ -1,6 +1,7 @@
-from datetime import datetime, timezone
-from sqlalchemy import select
 from collections.abc import Sequence
+from datetime import datetime, timezone
+
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Outbox, OutboxStatus
@@ -19,7 +20,6 @@ class OutboxRepository:
             .with_for_update(skip_locked=True)
         )
         return result.scalars().all()
-
 
     async def mark_published(self, event: Outbox) -> None:
         event.status = OutboxStatus.PUBLISHED
