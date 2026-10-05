@@ -22,7 +22,12 @@ class Outbox(Base):
     aggregate_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False, index=True)
     payload: Mapped[dict] = mapped_column(JSONType, nullable=False)
     status: Mapped[OutboxStatus] = mapped_column(
-        Enum(OutboxStatus, native_enum=False, length=16),
+        Enum(
+            OutboxStatus,
+            native_enum=False,
+            length=16,
+            values_callable=lambda obj: [m.value for m in obj],
+        ),
         default=OutboxStatus.PENDING,
         nullable=False,
         index=True,

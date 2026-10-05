@@ -28,12 +28,25 @@ class Payment(Base):
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     amount: Mapped[Decimal] = mapped_column(Numeric(18, 2), nullable=False)
     currency: Mapped[Currency] = mapped_column(
-        Enum(Currency, native_enum=False, length=3), nullable=False
+        Enum(
+            Currency,
+            native_enum=False,
+            length=3,
+            values_callable=lambda obj: [m.value for m in obj],
+        ),
+        nullable=False,
     )
     description: Mapped[str] = mapped_column(Text, nullable=False)
-    meta: Mapped[dict] = mapped_column("metadata", JSONType, default=dict, nullable=False)
+    meta: Mapped[dict] = mapped_column(
+        "metadata", JSONType, default=dict, nullable=False
+    )
     status: Mapped[PaymentStatus] = mapped_column(
-        Enum(PaymentStatus, native_enum=False, length=16),
+        Enum(
+            PaymentStatus,
+            native_enum=False,
+            length=16,
+            values_callable=lambda obj: [m.value for m in obj],
+        ),
         default=PaymentStatus.PENDING,
         nullable=False,
     )
