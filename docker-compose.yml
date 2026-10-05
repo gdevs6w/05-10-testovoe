@@ -1,4 +1,8 @@
 name: payments
+x-app-env: &app_env
+  DATABASE_URL: postgresql+asyncpg://payments:payments@postgres:5432/payments
+  RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+  API_KEY: ${API_KEY:-change-me}
 
 services:
   postgres:
@@ -25,20 +29,9 @@ services:
     ports:
       - "15672:15672"
 
-  migrate:
-    build: .
-    command: alembic upgrade head
-    environment: &app_env
-      DATABASE_URL: postgresql+asyncpg://payments:payments@postgres:5432/payments
-      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
-      API_KEY: ${API_KEY:-change-me}
-    depends_on:
-      postgres:
-        condition: service_healthy
-
   api:
     build: .
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    command: sh -c "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"
     environment: *app_env
     ports:
       - "8000:8000"
@@ -47,8 +40,11 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health').status==200 else 1)" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   consumer:
     build: .
@@ -59,8 +55,6 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
 
 volumes:
   pgdata:
